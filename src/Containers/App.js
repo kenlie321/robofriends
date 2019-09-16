@@ -1,38 +1,57 @@
 import React from 'react';
+import {connect} from 'react-redux';
 import CardList from '../Components/CardList';
 import Searchbox from '../Components/Searchbox';
 import Scroll from '../Components/Scroll';
-//import {robots} from './robots';
-class App extends React.Component{
-    constructor(){
-        super();
-        this.state = {
-            robots: [],
-            searchValue:""
-        }
-        //this.onSearchChange = this.onSearchChange.bind(this);
+import {setSearchField, getRobots} from '../actions/actions';
+
+const mapStateToProps = state => {
+    return {
+        searchField:state.searchRobots.searchField,
+        robots:state.getRobots.robots,
+        isPending:state.getRobots.isPending,
+        error:state.getRobots.error
     }
+}
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onSearchChange: (event) => dispatch(setSearchField(event.target.value)),
+        onGetRobots: () => dispatch(getRobots()),
+    }
+}
+
+class App extends React.Component{
+    // constructor(){
+    //     super();
+    //     this.state = {
+    //         robots: [],
+    //         // searchField:""
+    //     }
+    //     //this.onSearchChange = this.onSearchChange.bind(this);
+    // }
 
     componentDidMount(){
-        fetch('https://jsonplaceholder.typicode.com/users').then(response =>{
-            return response.json();
-        }).then(users => {
-            this.setState({robots:users});
-        });
+        this.props.onGetRobots();
+        // fetch('https://jsonplaceholder.typicode.com/users').then(response =>{
+        //     return response.json();
+        // }).then(users => {
+        //     this.setState({robots:users});
+        // });
     }
 
-    onSearchChange = (e) =>{
-        this.setState({searchValue:e.target.value});
-    }
+    // onSearchChange = (e) =>{
+    //     this.setState({searchField:e.target.value});
+    // }
     render(){
-        const filteredRobots = this.state.robots.filter(robot => {
-            return robot.name.toLowerCase().includes(this.state.searchValue.toLowerCase());
+        const filteredRobots = this.props.robots.filter(robot => {
+            return robot.name.toLowerCase().includes(this.props.searchField.toLowerCase());
         });
-        if(filteredRobots.length === 0) return "Loading...";
+        if(this.props.isPending) return "Loading...";
         return (
             <div className="tc">
                 <h1>Robofriends</h1>
-                <Searchbox onSearchChange={this.onSearchChange} search={this.state.searchValue}/>
+                <Searchbox onSearchChange={this.props.onSearchChange} search={this.props.searchField}/>
                 <Scroll>
                     <CardList robots = {filteredRobots}/>
                 </Scroll>
@@ -41,4 +60,4 @@ class App extends React.Component{
     }
 }
 
-export default App;
+export default connect(mapStateToProps, mapDispatchToProps)(App);
